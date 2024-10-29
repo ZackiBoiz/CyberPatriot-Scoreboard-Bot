@@ -8,7 +8,7 @@ Math.clamp = (min, num, max) => {
 };
 
 const MIN_LIMIT = 5;
-const MAX_LIMIT = 60;
+const MAX_LIMIT = 50;
 
 module.exports = {
   data: {
@@ -40,11 +40,23 @@ module.exports = {
   },
   async exec(interaction, client, refreshed = false) {
     const options = interaction.options;
-    const stat = interaction.customId?.split("_")[3] ?? options?.getString("stat") ?? "CCS Score";
-    const limit = parseInt(interaction.customId?.split("_")[4] ?? options?.getInteger("limit") ?? MAX_LIMIT);
+    const stat = interaction.customId?.split("_")[3] ?? interaction.values?.[0].split("_")[3] ?? options?.getString("stat") ?? "CCS Score";
+    const limit = parseInt(interaction.customId?.split("_")[4] ?? interaction.values?.[0].split("_")[4] ?? options?.getInteger("limit") ?? MAX_LIMIT);
 
     var buffer = await createGraph(1000, 600, limit, stat);
     var row = new ActionRowBuilder()
+      .addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId("stat")
+          .setPlaceholder("Select a stat to view...")
+          .addOptions(
+            { label: "CCS Score", value: `stats@__${interaction.user.id}_CCS Score_${limit}`, default: stat == "CCS Score" },
+            { label: "Play Time", value: `stats@__${interaction.user.id}_Play Time_${limit}`, default: stat == "Play Time" },
+            { label: "Score Time", value: `stats@__${interaction.user.id}_Score Time_${limit}`, default: stat == "Score Time" },
+            { label: "Location", value: `stats@__${interaction.user.id}_Location_${limit}`, default: stat == "Location" },
+          ),
+      );
+    var row2 = new ActionRowBuilder()
       .addComponents(
         GeneralFunctions.generateRefresh(interaction, "stats", "refresh", `${stat}_${limit}`)
       );
@@ -52,12 +64,12 @@ module.exports = {
     if (refreshed) {
       await interaction.update({
         files: [{ attachment: buffer, name: "histogram.png" }], 
-        components: [row]
+        components: [row, row2]
       });
     } else {
       await interaction.reply({
         files: [{ attachment: buffer, name: "histogram.png" }], 
-        components: [row]
+        components: [row, row2]
       });
     }
   },

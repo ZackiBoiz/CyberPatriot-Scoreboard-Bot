@@ -93,8 +93,8 @@ exports.createGraph = async (width, height, limit, named_stat) => {
   const labels = sorted.map(entry => entry.label);
   const data = sorted.map(entry => entry.count);
 
-  const base = 14;
-  const ratio = 0.75;
+  const base = 18;
+  const ratio = 0.25;
   const font_size = Math.max(1, base - Math.floor(labels.length / (limit * ratio)));
 
   const canvas = createCanvas(width, height);
