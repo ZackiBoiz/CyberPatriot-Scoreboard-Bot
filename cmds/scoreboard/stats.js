@@ -7,6 +7,9 @@ Math.clamp = (min, num, max) => {
   return Math.min(Math.max(min, num), max);
 };
 
+const MIN_LIMIT = 5;
+const MAX_LIMIT = 60;
+
 module.exports = {
   data: {
     name: "stats",
@@ -25,32 +28,25 @@ module.exports = {
         ],
         required: true,
       },
+      {
+        type: OptionTypes.INTEGER,
+        name: "limit",
+        description: "Number of bars to show at once",
+        min_value: MIN_LIMIT,
+        max_value: MAX_LIMIT,
+        required: false
+      }
     ]
   },
   async exec(interaction, client, refreshed = false) {
     const options = interaction.options;
-    const stat = interaction.customId?.split("_")[3] ?? options.getString("stat");
-    var real_stat = "ccs_score";
+    const stat = interaction.customId?.split("_")[3] ?? options?.getString("stat") ?? "CCS Score";
+    const limit = parseInt(interaction.customId?.split("_")[4] ?? options?.getInteger("limit") ?? MAX_LIMIT);
 
-    switch (stat) {
-      case "Play Time":
-        real_stat = "play_time";
-        break;
-      case "Score Time":
-        real_stat = "score_time";
-        break;
-      case "Location":
-        real_stat = "location";
-        break;
-      case "CCS Score": default:
-        real_stat = "ccs_score"
-        break;
-    }
-
-    var buffer = await createGraph(800, 600, stat, real_stat);
+    var buffer = await createGraph(1000, 600, limit, stat);
     var row = new ActionRowBuilder()
       .addComponents(
-        GeneralFunctions.generateRefresh(interaction, "stats", "refresh", `${stat}`)
+        GeneralFunctions.generateRefresh(interaction, "stats", "refresh", `${stat}_${limit}`)
       );
 
     if (refreshed) {

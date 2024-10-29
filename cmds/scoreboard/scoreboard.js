@@ -6,6 +6,7 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 Math.clamp = (min, num, max) => {
   return Math.min(Math.max(min, num), max);
 };
+
 const TEAM_NUMBER_LENGTH = 7;
 const MIN_ENTRIES = 3;
 const MAX_ENTRIES = 16;
@@ -47,10 +48,10 @@ module.exports = {
   },
   async exec(interaction, client, refreshed = false) {
     const options = interaction.options;
-    const entries = Math.clamp(MIN_ENTRIES, parseInt(interaction.customId?.split("_")[3] ?? options.getInteger("entries") ?? MAX_ENTRIES), MAX_ENTRIES);
-    const page = Math.max(0, parseInt(interaction.customId?.split("_")[4] ?? (options.getInteger("page") ?? 1) - 1));
-    const location = interaction.customId?.split("_")[5] ?? options.getString("location");
-    const pins = (interaction.customId?.split("_")[6] ?? options.getString("pins") ?? "").split(/\s*,\s*/);
+    const entries = Math.clamp(MIN_ENTRIES, parseInt(interaction.customId?.split("_")[3] ?? options?.getInteger("entries") ?? MAX_ENTRIES), MAX_ENTRIES);
+    const page = Math.max(0, parseInt(interaction.customId?.split("_")[4] ?? (options?.getInteger("page") ?? 1) - 1));
+    const location = interaction.customId?.split("_")[5] ?? options?.getString("location") ?? "";
+    const pins = (interaction.customId?.split("_")[6] ?? options?.getString("pins") ?? "").split(/\s*,\s*/);
 
     if (pins.length > 3) {
       var embed = await GeneralFunctions.generateAlert(interaction, "You can only pin up to 3 teams.", "x");

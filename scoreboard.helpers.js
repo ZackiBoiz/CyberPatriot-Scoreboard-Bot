@@ -10,6 +10,16 @@ function hr(length) {
   return "-".repeat(length);
 }
 
+function hhmmssToSeconds(time) {
+  const parts = time.split(':');
+
+  const hours = parseInt(parts[0]) || 0;
+  const minutes = parseInt(parts[1]) || 0;
+  const seconds = parseInt(parts[2]) || 0;
+
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
 const RESET = "\x1b[0m";
 const BOLD = "\x1b[1m";
 const UNDERLINE = "\x1b[2m";
@@ -31,91 +41,137 @@ async function fetchScoreboard(route) {
   return (await response.json()).data;
 }
 
-exports.createGraph = async (width, height, named_stat, stat) => {
+exports.createGraph = async (width, height, limit, named_stat) => {
   const teams = await fetchScoreboard("/api/team/scores.php");
+  const dataset = teams.map(team => {
+    switch (named_stat) {
+      case "CCS Score":
+        return {
+          label: team.ccs_score,
+          value: parseInt(team.ccs_score)
+        };
+      case "Play Time":
+        return {
+          label: team.play_time,
+          value: hhmmssToSeconds(team.play_time)
+        };
+      case "Score Time":
+        return {
+          label: team.score_time,
+          value: hhmmssToSeconds(team.score_time)
+        };
+      case "Location":
+        return {
+          label: team.location,
+          value: parseInt(Array.from(team.location).map(char => char.charCodeAt(0)).join(""))
+        };
+      default:
+        return {
+          label: "unknown",
+          value: 0
+        };
+    }
+  });
+
+  const counts = {};
+  const map = {};
+
+  dataset.forEach(entry => {
+    counts[entry.value] = (counts[entry.value] || 0) + 1;
+    if (!map[entry.value]) {
+      map[entry.value] = entry.label;
+    }
+  });
+
+  const counted = Object.entries(counts).map(([value, count]) => ({
+    value: parseInt(value),
+    count: count,
+    label: map[value]
+  }));
+
+  const sorted = counted.sort((a, b) => b.count - a.count).slice(0, limit).sort((a, b) => a.value - b.value);
+  const labels = sorted.map(entry => entry.label);
+  const data = sorted.map(entry => entry.count);
+
+  const base = 14;
+  const ratio = 0.75;
+  const font_size = Math.max(1, base - Math.floor(labels.length / (limit * ratio)));
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
-
-  var counts = {};
-  teams.forEach(team => {
-    counts[team[stat]] ??= 0;
-    counts[team[stat]]++;
-  });
-
-  const labels = Object.keys(counts);
-  const data = Object.values(counts);
-
   const chart = new Chart(ctx, {
-    type: "line",
+    type: "bar",
     data: {
       labels: labels,
       datasets: [{
         label: "Number of Teams",
         data: data,
-        backgroundColor: "rgba(114, 137, 218, 0.8)", // Discord-like color
+        backgroundColor: "rgba(114, 137, 218, 0.8)",
         borderColor: "rgba(114, 137, 218, 1)",
         borderWidth: 1
-          }]
+      }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // Optional: allows the chart to resize
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
           title: {
             display: true,
             text: "Number of Teams",
-            color: "#FFFFFF", // White color for the title
+            color: "#FFFFFF",
             font: {
-              size: 18 // Increase title font size
+              size: 18
             }
           },
           ticks: {
-            color: "#FFFFFF", // White color for tick labels
+            color: "#FFFFFF",
             font: {
-              size: 16 // Increase tick label font size
+              size: 16
             }
           },
           grid: {
-            color: "rgba(255, 255, 255, 0.1)" // Light grid lines for better visibility
+            color: "rgba(255, 255, 255, 0.1)"
           }
         },
         x: {
           title: {
             display: true,
             text: named_stat,
-            color: "#FFFFFF", // White color for the title
+            color: "#FFFFFF",
             font: {
-              size: 18 // Increase title font size
+              size: 18
             }
           },
           ticks: {
             type: "category",
-            color: "#FFFFFF", // White color for tick labels
+            color: "#FFFFFF",
             font: {
-              size: 14 // Increase tick label font size
-            }
+              size: font_size
+            },
+            autoSkip: false,
+            minRotation: 45,
+            maxRotation: 90,
           },
           grid: {
-            color: "rgba(255, 255, 255, 0.1)" // Light grid lines for better visibility
+            color: "rgba(255, 255, 255, 0.1)"
           }
         }
       },
       plugins: {
         legend: {
           labels: {
-            color: "#FFFFFF", // White color for legend labels
+            color: "#FFFFFF",
             font: {
-              size: 18 // Increase legend font size
+              size: 18
             }
           }
         }
       },
       elements: {
         bar: {
-          borderRadius: 5, // Rounded corners for bars
+          borderRadius: 5,
         }
       }
     }

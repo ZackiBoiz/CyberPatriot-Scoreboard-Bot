@@ -6,6 +6,7 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 Math.clamp = (min, num, max) => {
   return Math.min(Math.max(min, num), max);
 };
+
 const TEAM_NUMBER_LENGTH = 7;
 
 module.exports = {
@@ -24,7 +25,7 @@ module.exports = {
   },
   async exec(interaction, client, refreshed = false) {
     const options = interaction.options;
-    const team_name = interaction.customId?.split("_")[3] ?? options.getString("team");
+    const team_name = interaction.customId?.split("_")[3] ?? options?.getString("team") ?? "";
 
     if (team_name.length != TEAM_NUMBER_LENGTH) {
       var embed = await GeneralFunctions.generateAlert(interaction, `The team number provided isn't ${TEAM_NUMBER_LENGTH} characters long.`, "x");
