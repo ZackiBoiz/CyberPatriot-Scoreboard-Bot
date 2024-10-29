@@ -1,0 +1,20 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/rest": "^2.4.0",
+    "@napi-rs/canvas": "^0.1.59",
+    "@types/node": "^18.0.6",
+    "chart.js": "^4.4.6",
+    "discord-api-types": "^0.37.103",
+    "discord.js": "^14.16.3"
+  }
+}
