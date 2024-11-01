@@ -21,7 +21,7 @@ module.exports = {
         name: "stat",
         description: "Team stat to graph",
         choices: [
-          { name: "CCS Score", value: "CCS Score" },
+          { name: "Score", value: "Score" },
           { name: "Play Time", value: "Play Time" },
           { name: "Score Time", value: "Score Time" },
           { name: "Location", value: "Location" },
@@ -50,7 +50,7 @@ module.exports = {
           .setCustomId("stat")
           .setPlaceholder("Select a stat to view...")
           .addOptions(
-            { label: "CCS Score", value: `stats@__${interaction.user.id}_CCS Score_${limit}`, default: stat == "CCS Score" },
+            { label: "Score", value: `stats@__${interaction.user.id}_Score_${limit}`, default: stat == "Score" },
             { label: "Play Time", value: `stats@__${interaction.user.id}_Play Time_${limit}`, default: stat == "Play Time" },
             { label: "Score Time", value: `stats@__${interaction.user.id}_Score Time_${limit}`, default: stat == "Score Time" },
             { label: "Location", value: `stats@__${interaction.user.id}_Location_${limit}`, default: stat == "Location" },

@@ -42,13 +42,15 @@ async function fetchScoreboard(route) {
 }
 
 exports.createGraph = async (width, height, limit, named_stat) => {
-  const teams = await fetchScoreboard("/api/team/scores.php");
-  const dataset = teams.map(team => {
+  var teams = await fetchScoreboard(`/api/team/scores.php?${Date.now()}`);
+  const dataset = teams.filter(team => {
+    return team.play_time != null && team.score_time != null
+  }).map(team => {
     switch (named_stat) {
-      case "CCS Score":
+      case "Score":
         return {
-          label: team.ccs_score,
-          value: parseInt(team.ccs_score)
+          label: team.total ? team.total : team.ccs_score,
+          value: parseInt(team.total ? team.total : team.ccs_score)
         };
       case "Play Time":
         return {
@@ -185,21 +187,27 @@ exports.fetchTeam = async (team_name) => {
   const team_data = await fetchScoreboard(`/api/team/scores.php?team=${team_name}`);
   const image_data = await fetchScoreboard(`/api/image/scores.php?team=${team_name}`);
 
+  if (!image_data.length) {
+    return {
+      content: `\`\`\`ansi\n${BOLD + RED}This team isn't currently competing in this round.\`\`\``
+    }
+  }
+
   var content = "```ansi\n";
   content += `${BOLD + BLUE}CyberPatriot Scoreboard\n`;
   content += `${CYAN + hr(80)}\n`;
-  content += `${WHITE}Team Number | Location | Division | CCS Score | Play Time | Score Time | Codes**\n`;
+  content += `${WHITE}Team Number | Location | Division | Score     | Play Time | Score Time | Codes**\n`;
   content += `${CYAN + hr(80)}\n`;
 
   team_data.forEach(team => {
     const team_number = `${MAGENTA + team.team_number}`.padEnd(19, " ");
     const location = `${GREEN + team.location}`.padEnd(16, " ");
     const division = `${GREEN + team.division}`.padEnd(16, " ");
-    const ccs_score = `${BLUE + team.ccs_score}`.padEnd(17, " ");
-    const play_time = `${WHITE + team.play_time}`.padEnd(17, " ");
-    const score_time = `${WHITE + team.score_time}`.padEnd(18, " ");
+    const score = `${BLUE + parseInt(team.total ? team.total : team.ccs_score)}`.padEnd(17, " ");
+    const play_time = `${WHITE + (team.play_time ?? "N/A")}`.padEnd(17, " ");
+    const score_time = `${WHITE + (team.score_time ?? "N/A")}`.padEnd(18, " ");
     const codes = `${RED + (team.code || "N/A")}`;
-    content += `${team_number + location + division + ccs_score + play_time + score_time + codes}\n`;
+    content += `${team_number + location + division + score + play_time + score_time + codes}\n`;
   });
   content += `${CYAN + hr(80)}\n`;
   content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded`;
@@ -230,7 +238,7 @@ exports.fetchTeam = async (team_name) => {
 };
 
 exports.fetchScores = async (entries, page, pins, location = null) => {
-  var teams = await fetchScoreboard("/api/team/scores.php");
+  var teams = await fetchScoreboard(`/api/team/scores.php?${Date.now()}`);
 
   function addTeamEntries(entries) {
     return entries.map(entry => {
@@ -238,10 +246,10 @@ exports.fetchScores = async (entries, page, pins, location = null) => {
       const rank = `${GREEN}#${real_rank}`.padEnd(12, " ");
 
       const team_number = `${MAGENTA + entry.team_number}`.padEnd(19, " ");
-      const ccs_score = `${BLUE + entry.ccs_score}`.padEnd(17, " ");
-      const score_time = `${WHITE + entry.score_time}`.padEnd(18, " ");
+      const score = `${BLUE + parseInt(entry.total ? entry.total : entry.ccs_score)}`.padEnd(17, " ");
+      const score_time = `${WHITE + (entry.score_time ?? "N/A")}`.padEnd(18, " ");
       const codes = `${RED + (entry.code || "N/A")}`;
-      return `${rank + team_number + ccs_score + score_time + codes}`;
+      return `${rank + team_number + score + score_time + codes}`;
     }).join("\n");
   }
 
@@ -252,7 +260,7 @@ exports.fetchScores = async (entries, page, pins, location = null) => {
   var content = "```ansi\n";
   content += `${BOLD + BLUE}CyberPatriot Scoreboard\n`;
   content += `${CYAN + hr(53)}\n`;
-  content += `${WHITE}Rank | Team Number | CCS Score | Score Time | Codes**\n`;
+  content += `${WHITE}Rank | Team Number | Score     | Score Time | Codes**\n`;
   content += `${CYAN + hr(53)}\n`;
 
   const pinned_scores = teams.filter(team => pins.includes(team.team_number));

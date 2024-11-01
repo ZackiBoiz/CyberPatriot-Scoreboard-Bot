@@ -67,8 +67,8 @@ module.exports = {
     content += scoreboard_content;
     var row = new ActionRowBuilder()
       .addComponents(
-        GeneralFunctions.generateRefresh(interaction, "scoreboard", "all_left", `${entries}_0_${location ?? ""}_${pins.join(",")}`, page > 1),
-        GeneralFunctions.generateRefresh(interaction, "scoreboard", "left", `${entries}_${Math.clamp(1, page - 1, pages - 1)}_${location ?? ""}_${pins.join(",")}`, page > 1),
+        GeneralFunctions.generateRefresh(interaction, "scoreboard", "all_left", `${entries}_0_${location ?? ""}_${pins.join(",")}`, page > 0),
+        GeneralFunctions.generateRefresh(interaction, "scoreboard", "left", `${entries}_${Math.clamp(1, page - 1, pages - 1)}_${location ?? ""}_${pins.join(",")}`, page > 0),
         GeneralFunctions.generateRefresh(interaction, "scoreboard", "refresh", `${entries}_${page}_${location ?? ""}_${pins.join(",")}`),
         GeneralFunctions.generateRefresh(interaction, "scoreboard", "right", `${entries}_${Math.clamp(1, page + 1, pages - 1)}_${location ?? ""}_${pins.join(",")}`, page < pages - 1),
         GeneralFunctions.generateRefresh(interaction, "scoreboard", "all_right", `${entries}_${pages - 1}_${location ?? ""}_${pins.join(",")}`, page < pages - 1),
