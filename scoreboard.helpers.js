@@ -49,7 +49,7 @@ exports.createGraph = async (width, height, limit, named_stat) => {
     switch (named_stat) {
       case "Score":
         return {
-          label: team.total ? team.total : team.ccs_score,
+          label: parseInt(team.total ? team.total : team.ccs_score).toString(),
           value: parseInt(team.total ? team.total : team.ccs_score)
         };
       case "Play Time":
