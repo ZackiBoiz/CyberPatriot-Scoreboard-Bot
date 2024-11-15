@@ -2,6 +2,14 @@ const { createCanvas } = require("@napi-rs/canvas");
 const { Chart, registerables } = require("chart.js");
 Chart.register(...registerables);
 
+String.prototype.truncate = function(length, ending = "…") {
+  if (this.length <= length) {
+    return this.toString();
+  }
+
+  const slice_length = length - ending.length;
+  return this.slice(0, slice_length) + ending;
+};
 Math.clamp = (min, num, max) => {
   return Math.min(Math.max(min, num), max);
 };
@@ -220,7 +228,7 @@ exports.fetchTeam = async (team_name) => {
   content += `${CYAN + hr(82)}\n`;
 
   image_data.forEach(image => {
-    const image_name = `${MAGENTA + image.image}`.padEnd(25, " ");
+    const image_name = `${MAGENTA + image.image.truncate(18)}`.padEnd(25, " ");
     const ccs_score = `${BLUE + image.ccs_score}`.padEnd(17, " ");
     const duration = `${WHITE + image.duration}`.padEnd(16, " ");
     const found = `${BLUE + image.found}`.padEnd(13, " ");
