@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r dotenv/config index.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
     "@types/node": "^18.0.6",
     "chart.js": "^4.4.6",
     "discord-api-types": "^0.37.103",
-    "discord.js": "^14.16.3"
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7"
   }
 }

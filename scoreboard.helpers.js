@@ -39,6 +39,29 @@ const CYAN = "\x1b[36m";
 const BLUE = "\x1b[34m";
 const MAGENTA = "\x1b[35m";
 
+const DIVISION_CODES = {
+  "All": "ALL",
+  "Any": "ANY",
+  "AFJROTC": "AFJROTC",
+  "AJROTC": "AJROTC",
+  "CAP": "CAP",
+  "MCJROTC": "MCJROTC",
+  "Middle School": "MS",
+  "NJROTC": "NJROTC",
+  "Open": "OPEN",
+  "USNSCC": "USNSCC",
+};
+
+const TIER_CODES = {
+  "All": "ALL",
+  "Any": "ANY",
+  "High School": "HS",
+  "Middle School": "MS",
+  "Platinum": "PLAT",
+  "Gold": "GOLD",
+  "Silver": "SILVER"
+};
+
 async function fetchScoreboard(route) {
   var response = await fetch("https://scoreboard.uscyberpatriot.org" + route, {
     method: "GET",
@@ -203,21 +226,25 @@ exports.fetchTeam = async (team_name) => {
 
   var content = "```ansi\n";
   content += `${BOLD + BLUE}CyberPatriot Scoreboard\n`;
-  content += `${CYAN + hr(80)}\n`;
-  content += `${WHITE}Team Number | Location | Division | Score     | Play Time | Score Time | Codes**\n`;
-  content += `${CYAN + hr(80)}\n`;
+  content += `${CYAN + hr(85)}\n`;
+  content += `${WHITE}Team Number | Location | Division/Tier | CCS Score | Play Time | Score Time | Codes**\n`;
+  content += `${CYAN + hr(85)}\n`;
 
   team_data.forEach(team => {
     const team_number = `${MAGENTA + team.team_number}`.padEnd(19, " ");
     const location = `${GREEN + team.location}`.padEnd(16, " ");
-    const division = `${GREEN + team.division}`.padEnd(16, " ");
-    const score = `${BLUE + parseInt(team.total ? team.total : team.ccs_score)}`.padEnd(17, " ");
-    const play_time = `${WHITE + (team.play_time ?? "N/A")}`.padEnd(17, " ");
-    const score_time = `${WHITE + (team.score_time ?? "N/A")}`.padEnd(18, " ");
-    const codes = `${RED + (team.code || "N/A")}`;
-    content += `${team_number + location + division + score + play_time + score_time + codes}\n`;
+    const division_tier = `${GREEN + DIVISION_CODES[team.division]}/${TIER_CODES[team.tier]}`.padEnd(20, " ");
+
+    let raw_score = parseFloat(team.total ? team.total : team.ccs_score);
+    let sign = isNaN(raw_score) || raw_score < 0 ? "" : raw_score == 0 ? "±" : "+";
+    const ccs_score = `${BLUE + (isNaN(raw_score) ? "" : sign + raw_score.toFixed(2))}`.padEnd(17, " ");
+
+    const play_time = `${WHITE + (team.play_time ?? "--:--:--")}`.padEnd(17, " ");
+    const score_time = `${WHITE + (team.score_time ?? "--:--:--")}`.padEnd(18, " ");
+    const codes = `${RED + (team.code || "")}`;
+    content += `${team_number + location + division_tier + ccs_score + play_time + score_time + codes}\n`;
   });
-  content += `${CYAN + hr(80)}\n`;
+  content += `${CYAN + hr(85)}\n`;
   content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded`;
   content += "```";
 
@@ -234,12 +261,12 @@ exports.fetchTeam = async (team_name) => {
     const found = `${BLUE + image.found}`.padEnd(13, " ");
     const remaining = `${BLUE + image.remaining}`.padEnd(17, " ");
     const penalties = `${RED + image.penalties}`.padEnd(17, " ");
-    const codes = `${RED + (image.code || "N/A")}`;
+    const codes = `${RED + (image.code || "")}`;
     content += `${image_name + ccs_score + duration + found + remaining + penalties + codes}\n`;
   });
 
   content += `${CYAN + hr(82)}\n`;
-  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded`;
+  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded\n  C = Challenge time exceeded\n  W = Scores withheld`;
   content += "```";
 
   return { content };
@@ -252,12 +279,15 @@ exports.fetchScores = async (entries, page, pins, location = null) => {
     return entries.map(entry => {
       const real_rank = teams.findIndex(team => team.team_number === entry.team_number) + 1;
       const rank = `${GREEN}#${real_rank}`.padEnd(12, " ");
-
       const team_number = `${MAGENTA + entry.team_number}`.padEnd(19, " ");
-      const score = `${BLUE + parseInt(entry.total ? entry.total : entry.ccs_score)}`.padEnd(17, " ");
-      const score_time = `${WHITE + (entry.score_time ?? "N/A")}`.padEnd(18, " ");
-      const codes = `${RED + (entry.code || "N/A")}`;
-      return `${rank + team_number + score + score_time + codes}`;
+
+      let raw_score = parseFloat(entry.total ? entry.total : entry.ccs_score);
+      let sign = isNaN(raw_score) || raw_score < 0 ? "" : raw_score == 0 ? "±" : "+";
+      const ccs_score = `${BLUE + (isNaN(raw_score) ? "" : sign + raw_score.toFixed(2))}`.padEnd(17, " ");
+      
+      const score_time = `${WHITE + (entry.score_time ?? "--:--:--")}`.padEnd(18, " ");
+      const codes = `${RED + (entry.code || "")}`;
+      return `${rank + team_number + ccs_score + score_time + codes}`;
     }).join("\n");
   }
 
@@ -268,7 +298,7 @@ exports.fetchScores = async (entries, page, pins, location = null) => {
   var content = "```ansi\n";
   content += `${BOLD + BLUE}CyberPatriot Scoreboard\n`;
   content += `${CYAN + hr(53)}\n`;
-  content += `${WHITE}Rank | Team Number | Score     | Score Time | Codes**\n`;
+  content += `${WHITE}Rank | Team Number | CCS Score | Score Time | Codes**\n`;
   content += `${CYAN + hr(53)}\n`;
 
   const pinned_scores = teams.filter(team => pins.includes(team.team_number));
@@ -282,7 +312,7 @@ exports.fetchScores = async (entries, page, pins, location = null) => {
     content += `${CYAN + hr(53)}\n`;
   }
 
-  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded\n\n`;
+  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded\n  C = Challenge time exceeded\n  W = Scores withheld\n\n`;
   content += `${GOLD}Showing ${Math.max(1, entries * page + 1)} to ${Math.min(teams.length, entries * (page + 1))} of ${teams.length} entries from ${location ? location.toUpperCase() : "all locations"}. ${WHITE}(page ${page + 1} of ${pages})`;
   content += "```";
 
