@@ -44,6 +44,11 @@ module.exports = {
     const limit = parseInt(interaction.customId?.split("_")[4] ?? interaction.values?.[0].split("_")[4] ?? options?.getInteger("limit") ?? MAX_LIMIT);
 
     var buffer = await createGraph(1000, 600, limit, stat);
+    if (!buffer) {
+      const embed = await GeneralFunctions.generateAlert(interaction, `Could not fetch stats info at this time!`, "x");
+      return await interaction.reply({embeds: [embed], ephemeral: true});
+    }
+
     var row = new ActionRowBuilder()
       .addComponents(
         new StringSelectMenuBuilder()

@@ -33,7 +33,13 @@ module.exports = {
     }
 
     var content = `[View the team here](<https://scoreboard.uscyberpatriot.org/team.php?team=${team_name}>).`;
-    var { content: scoreboard_content } = await fetchTeam(team_name);
+    const data = await fetchTeam(team_name);
+    if (!data) {
+      const embed = await GeneralFunctions.generateAlert(interaction, `Could not fetch team info at this time!`, "x");
+      return await interaction.reply({embeds: [embed], ephemeral: true});
+    }
+
+    const { content: scoreboard_content } = data;
     content += scoreboard_content;
     var row = new ActionRowBuilder()
       .addComponents(

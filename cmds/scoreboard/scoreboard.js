@@ -63,7 +63,13 @@ module.exports = {
     }
 
     var content = "[View the scoreboard here](<https://scoreboard.uscyberpatriot.org/>).";
-    var { pages, content: scoreboard_content } = await fetchScores(entries, page, pins, location);
+    const data = await fetchScores(entries, page, pins, location);
+    if (!data) {
+      const embed = await GeneralFunctions.generateAlert(interaction, `Could not fetch scoreboard info at this time!`, "x");
+      return await interaction.reply({embeds: [embed], ephemeral: true});
+    }
+
+    var { pages, content: scoreboard_content } = data;
     content += scoreboard_content;
     var row = new ActionRowBuilder()
       .addComponents(

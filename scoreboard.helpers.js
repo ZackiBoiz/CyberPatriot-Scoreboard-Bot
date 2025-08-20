@@ -69,11 +69,25 @@ async function fetchScoreboard(route) {
       "Content-Type": "application/json"
     }
   });
-  return (await response.json()).data;
+
+  if (!response.ok) {
+    console.error("Error fetching data:", response.statusText);
+    return null;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  const data = JSON.parse(text);
+  return data;
 }
 
 exports.createGraph = async (width, height, limit, named_stat) => {
   var teams = await fetchScoreboard(`/api/team/scores.php?${Date.now()}`);
+  if (!teams) return null;
+
   const dataset = teams.filter(team => {
     return team.play_time != null && team.score_time != null
   }).map(team => {
@@ -216,7 +230,9 @@ exports.createGraph = async (width, height, limit, named_stat) => {
 
 exports.fetchTeam = async (team_name) => {
   const team_data = await fetchScoreboard(`/api/team/scores.php?team=${team_name}`);
+  if (!team_data) return null;
   const image_data = await fetchScoreboard(`/api/image/scores.php?team=${team_name}`);
+  if (!image_data) return null;
 
   if (!image_data.length) {
     return {
@@ -245,7 +261,7 @@ exports.fetchTeam = async (team_name) => {
     content += `${team_number + location + division_tier + ccs_score + play_time + score_time + codes}\n`;
   });
   content += `${CYAN + hr(85)}\n`;
-  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded`;
+  content += `${RED}**Codes:\n${GOLD}  M = Multiple instances\n  T = Time exceeded\n  C = Challenge time exceeded\n  W = Scores withheld`;
   content += "```";
 
   content += "```ansi\n";
@@ -274,6 +290,7 @@ exports.fetchTeam = async (team_name) => {
 
 exports.fetchScores = async (entries, page, pins, location = null) => {
   var teams = await fetchScoreboard(`/api/team/scores.php?${Date.now()}`);
+  if (!teams) return null;
 
   function addTeamEntries(entries) {
     return entries.map(entry => {
